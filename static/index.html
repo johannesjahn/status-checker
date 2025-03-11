@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status Checker</title>
+  </head>
+  <body style="background-color: black; color: white">
+    <pre id="status" style="text-shadow: 0 0 5px white">Connecting...</pre>
+
+    <script>
+      const statusDiv = document.getElementById("status");
+      const socket = new WebSocket("ws://localhost:8081/ws");
+
+      socket.onopen = function () {
+        statusDiv.textContent = "Connected";
+      };
+
+      socket.onmessage = function (event) {
+        const formattedData = JSON.stringify(JSON.parse(event.data), null, 2);
+        statusDiv.textContent = formattedData;
+      };
+
+      socket.onclose = function () {
+        statusDiv.textContent = "Disconnected";
+      };
+
+      socket.onerror = function (error) {
+        statusDiv.textContent = "Error: " + error.message;
+      };
+    </script>
+  </body>
+</html>

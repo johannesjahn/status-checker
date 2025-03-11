@@ -10,7 +10,7 @@
 
     <script>
       const statusDiv = document.getElementById("status");
-      const socket = new WebSocket("ws://localhost:8081/ws");
+      const socket = new WebSocket(`ws://${window.location.host}/ws`);
 
       socket.onopen = function () {
         statusDiv.textContent = "Connected";

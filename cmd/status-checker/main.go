@@ -34,7 +34,7 @@ var config []string
 var statusState map[string]StatusState = make(map[string]StatusState)
 
 func parseConfig() {
-	configBytes, err := os.ReadFile("../../config/default.json")
+	configBytes, err := os.ReadFile("./config.json")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -165,7 +165,7 @@ func main() {
 	parseConfig()
 	fmt.Println(config)
 
-	http.Handle("/", http.FileServer(http.Dir("../../static")))
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 
 	http.HandleFunc("/status-json", func(w http.ResponseWriter, r *http.Request) {
 		statusViews := StatusStatesToView()

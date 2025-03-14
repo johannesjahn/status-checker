@@ -59,7 +59,7 @@ func checkConfigItem(item string) statusUpdate {
 	if err != nil {
 		log.Print("Error checking item: ", item, " Error: ", err.Error())
 		stat := 0
-		if !strings.Contains(err.Error(), "connect:") && !strings.Contains(err.Error(), "dial tcp:") {
+		if !strings.Contains(err.Error(), "connect:") && !strings.Contains(err.Error(), "dial tcp:") && !strings.Contains(err.Error(), "timeout") {
 			stat = resp.StatusCode
 		}
 

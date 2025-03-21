@@ -151,6 +151,13 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		delete(wsConnections, conn)
 	}()
 
+	statusView := StatusStatesToView()
+	err = conn.WriteJSON(statusView)
+	if err != nil {
+		log.Printf("Error writing to websocket: %s", err)
+		delete(wsConnections, conn)
+	}
+
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {

@@ -9,7 +9,13 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${fileDirname}"
+      "program": "${workspaceFolder}/cmd/status-checker/main.go",
+      "args": [
+        "-c",
+        "${workspaceFolder}/config/config.json",
+        "-s",
+        "${workspaceFolder}/static"
+      ]
     }
   ]
 }

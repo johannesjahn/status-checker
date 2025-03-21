@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -33,8 +34,8 @@ type StatusView struct {
 var config []string
 var statusState map[string]StatusState = make(map[string]StatusState)
 
-func parseConfig() {
-	configBytes, err := os.ReadFile("./config.json")
+func parseConfig(configPath string) {
+	configBytes, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -50,6 +51,36 @@ func parseConfig() {
 
 	for _, item := range config {
 		statusState[item] = StatusState{Healthy: true}
+	}
+}
+
+type args struct {
+	configPath string
+	staticPath string
+}
+
+func parseArgs() args {
+	var (
+		configPath string
+		staticPath string
+	)
+
+	flag.StringVar(&configPath, "config", "./config.json", "path to the config file (default ./config.json)")
+	flag.StringVar(&configPath, "c", "./config.json", "path to the config file (default ./config.json) (shorthand)")
+	flag.StringVar(&staticPath, "static", "./static", "path to the static files (default ./static)")
+	flag.StringVar(&staticPath, "s", "./static", "path to the static files (default ./static) (shorthand)")
+
+	// Parse the flags
+	flag.Parse()
+
+	if flag.NArg() > 0 {
+		fmt.Println("Positional arguments found")
+		os.Exit(2)
+	}
+
+	return args{
+		configPath: configPath,
+		staticPath: staticPath,
 	}
 }
 
@@ -169,10 +200,11 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	parseConfig()
+	args := parseArgs()
+	parseConfig(args.configPath)
 	fmt.Println(config)
 
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/", http.FileServer(http.Dir(args.staticPath)))
 
 	http.HandleFunc("/status-json", func(w http.ResponseWriter, r *http.Request) {
 		statusViews := StatusStatesToView()

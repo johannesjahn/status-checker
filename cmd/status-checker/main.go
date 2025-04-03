@@ -57,18 +57,26 @@ func parseConfig(configPath string) {
 type args struct {
 	configPath string
 	staticPath string
+	dataPath   string
+	timeout    int
 }
 
 func parseArgs() args {
 	var (
 		configPath string
 		staticPath string
+		dataPath   string
+		timeout    int
 	)
 
 	flag.StringVar(&configPath, "config", "./config.json", "path to the config file (default ./config.json)")
 	flag.StringVar(&configPath, "c", "./config.json", "path to the config file (default ./config.json) (shorthand)")
 	flag.StringVar(&staticPath, "static", "./static", "path to the static files (default ./static)")
 	flag.StringVar(&staticPath, "s", "./static", "path to the static files (default ./static) (shorthand)")
+	flag.IntVar(&timeout, "timeout", 10, "timeout in seconds (default 10)")
+	flag.IntVar(&timeout, "t", 10, "timeout in seconds (default 10) (shorthand)")
+	flag.StringVar(&dataPath, "data", "./data", "path to the data files (default ./data)")
+	flag.StringVar(&dataPath, "d", "./data", "path to the data files (default ./data) (shorthand)")
 
 	// Parse the flags
 	flag.Parse()
@@ -78,9 +86,15 @@ func parseArgs() args {
 		os.Exit(2)
 	}
 
+	if dataPath[len(dataPath)-1] != '/' {
+		dataPath += "/"
+	}
+
 	return args{
 		configPath: configPath,
 		staticPath: staticPath,
+		timeout:    timeout,
+		dataPath:   dataPath,
 	}
 }
 
@@ -136,9 +150,9 @@ func updateStatusState() {
 	}
 }
 
-func saveStatusState(views []StatusView) {
+func saveStatusState(views []StatusView, dataPath string) {
 	// saves the current state to a json file
-	file, err := os.Create("data/status_state.json")
+	file, err := os.Create(dataPath + "status_state.json")
 	if err != nil {
 		log.Printf("Error creating file: %s", err)
 		return
@@ -152,9 +166,9 @@ func saveStatusState(views []StatusView) {
 	}
 }
 
-func loadStatusState() ([]StatusView, error) {
+func loadStatusState(dataPath string) ([]StatusView, error) {
 	// loads the current state from a json file
-	file, err := os.Open("data/status_state.json")
+	file, err := os.Open(dataPath + "status_state.json")
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +279,7 @@ func main() {
 		}
 	}()
 
-	_, err := loadStatusState()
+	_, err := loadStatusState(args.dataPath)
 	if err != nil {
 		log.Printf("Error loading status state: %s", err)
 	}
@@ -274,7 +288,7 @@ func main() {
 		updateStatusState()
 		log.Print("Currently connected clients: ", len(wsConnections))
 		statusView := StatusStatesToView()
-		saveStatusState(statusView)
+		saveStatusState(statusView, args.dataPath)
 		for conn := range wsConnections {
 			err := conn.WriteJSON(statusView)
 			if err != nil {
@@ -282,7 +296,7 @@ func main() {
 				delete(wsConnections, conn)
 			}
 		}
-		time.Sleep(10000 * time.Millisecond)
+		time.Sleep(time.Duration(args.timeout) * time.Second)
 	}
 
 }

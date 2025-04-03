@@ -14,7 +14,11 @@
         "-c",
         "${workspaceFolder}/config/config.json",
         "-s",
-        "${workspaceFolder}/static"
+        "${workspaceFolder}/static",
+        "-t",
+        "1",
+        "-d",
+        "${workspaceFolder}/data"
       ]
     }
   ]

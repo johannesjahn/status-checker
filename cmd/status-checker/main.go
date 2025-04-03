@@ -282,7 +282,7 @@ func main() {
 				delete(wsConnections, conn)
 			}
 		}
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(10000 * time.Millisecond)
 	}
 
 }

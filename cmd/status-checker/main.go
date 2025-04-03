@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -150,12 +152,12 @@ func updateStatusState() {
 	}
 }
 
-func saveStatusState(views []StatusView, dataPath string) {
+func saveStatusState(views []StatusView, dataPath string) error {
 	// saves the current state to a json file
 	file, err := os.Create(dataPath + "status_state.json")
 	if err != nil {
 		log.Printf("Error creating file: %s", err)
-		return
+		return err
 	}
 	defer file.Close()
 
@@ -163,7 +165,9 @@ func saveStatusState(views []StatusView, dataPath string) {
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(views); err != nil {
 		log.Printf("Error encoding JSON to file: %s", err)
+		return err
 	}
+	return nil
 }
 
 func loadStatusState(dataPath string) ([]StatusView, error) {
@@ -288,7 +292,22 @@ func main() {
 		updateStatusState()
 		log.Print("Currently connected clients: ", len(wsConnections))
 		statusView := StatusStatesToView()
-		saveStatusState(statusView, args.dataPath)
+		err := saveStatusState(statusView, args.dataPath)
+		if err != nil {
+			if errors.Is(err, syscall.ENOENT) {
+				log.Printf("File not found while saving status state: %s", err)
+				log.Printf("Creating directory: %s", args.dataPath)
+				err := os.MkdirAll(args.dataPath, os.ModePerm)
+				if err != nil {
+					log.Printf("Error creating directory: %s", err)
+				} else {
+					log.Printf("Retrying to save status state")
+					err = saveStatusState(statusView, args.dataPath)
+				}
+			} else {
+				log.Printf("Error saving status state: %s", err)
+			}
+		}
 		for conn := range wsConnections {
 			err := conn.WriteJSON(statusView)
 			if err != nil {

@@ -9,3 +9,4 @@ services:
       - ENV_VAR=your_value
     volumes:
       - ./config/config.json:/app/config.json
+      - ./data:/app/data

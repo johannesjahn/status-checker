@@ -136,6 +136,50 @@ func updateStatusState() {
 	}
 }
 
+func saveStatusState(views []StatusView) {
+	// saves the current state to a json file
+	file, err := os.Create("data/status_state.json")
+	if err != nil {
+		log.Printf("Error creating file: %s", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(views); err != nil {
+		log.Printf("Error encoding JSON to file: %s", err)
+	}
+}
+
+func loadStatusState() ([]StatusView, error) {
+	// loads the current state from a json file
+	file, err := os.Open("data/status_state.json")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var statusViews []StatusView
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&statusViews); err != nil {
+		return nil, err
+	}
+
+	// Convert the loaded status views back to the map format
+	for _, statusView := range statusViews {
+		statusState[statusView.Url] = StatusState{
+			Healthy:       statusView.Healthy,
+			LastHealthy:   time.Unix(statusView.LastHealth, 0),
+			LastUnhealthy: time.Unix(statusView.LastUnhealthy, 0),
+			ResponseCode:  statusView.ResponseCode,
+			ResponseTime:  time.Duration(statusView.ResponseTime) * time.Millisecond,
+		}
+	}
+
+	return statusViews, nil
+}
+
 func StatusStatesToView() []StatusView {
 	var statusViews []StatusView
 	for item, state := range statusState {
@@ -221,10 +265,16 @@ func main() {
 		}
 	}()
 
+	_, err := loadStatusState()
+	if err != nil {
+		log.Printf("Error loading status state: %s", err)
+	}
+
 	for {
 		updateStatusState()
 		log.Print("Currently connected clients: ", len(wsConnections))
 		statusView := StatusStatesToView()
+		saveStatusState(statusView)
 		for conn := range wsConnections {
 			err := conn.WriteJSON(statusView)
 			if err != nil {
@@ -232,7 +282,7 @@ func main() {
 				delete(wsConnections, conn)
 			}
 		}
-		time.Sleep(10000 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 	}
 
 }

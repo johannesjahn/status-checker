@@ -17,6 +17,17 @@
       };
 
       socket.onmessage = function (event) {
+        const jsonData = JSON.parse(event.data);
+        jsonData.map((item) => {
+          item["lastHealthy"] = new Date(item["lastHealthy"] * 1000);
+          item["lastUnhealthy"] = new Date(item["lastUnhealthy"] * 1000);
+          if (item["healthy"] === true) {
+            item["healthy"] = "✅";
+          } else {
+            item["healthy"] = "❌";
+          }
+          return item;
+        });
         const formattedData = JSON.stringify(JSON.parse(event.data), null, 2);
         statusDiv.textContent = formattedData;
       };

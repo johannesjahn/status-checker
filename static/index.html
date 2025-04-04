@@ -17,8 +17,8 @@
       };
 
       socket.onmessage = function (event) {
-        const jsonData = JSON.parse(event.data);
-        jsonData.map((item) => {
+        let jsonData = JSON.parse(event.data);
+        jsonData = jsonData.map((item) => {
           item["lastHealthy"] = new Date(item["lastHealthy"] * 1000);
           item["lastUnhealthy"] = new Date(item["lastUnhealthy"] * 1000);
           if (item["healthy"] === true) {

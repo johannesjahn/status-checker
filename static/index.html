@@ -28,7 +28,7 @@
           }
           return item;
         });
-        const formattedData = JSON.stringify(JSON.parse(event.data), null, 2);
+        const formattedData = JSON.stringify(jsonData, null, 2);
         statusDiv.textContent = formattedData;
       };
 

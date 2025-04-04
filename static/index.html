@@ -19,8 +19,12 @@
       socket.onmessage = function (event) {
         let jsonData = JSON.parse(event.data);
         jsonData = jsonData.map((item) => {
-          item["lastHealthy"] = new Date(item["lastHealthy"] * 1000);
-          item["lastUnhealthy"] = new Date(item["lastUnhealthy"] * 1000);
+          item["lastHealthy"] = new Date(
+            item["lastHealthy"] * 1000
+          ).toLocaleString();
+          item["lastUnhealthy"] = new Date(
+            item["lastUnhealthy"] * 1000
+          ).toLocaleString();
           if (item["healthy"] === true) {
             item["healthy"] = "✅";
           } else {

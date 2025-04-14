@@ -92,6 +92,11 @@ func parseArgs() args {
 		dataPath += "/"
 	}
 
+	fmt.Printf("Config Path: %s\n", configPath)
+	fmt.Printf("Static Path: %s\n", staticPath)
+	fmt.Printf("Data Path: %s\n", dataPath)
+	fmt.Printf("Timeout: %d\n", timeout)
+
 	return args{
 		configPath: configPath,
 		staticPath: staticPath,
